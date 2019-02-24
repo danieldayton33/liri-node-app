@@ -3,7 +3,7 @@
 
 Liri is a node.js application that takes in four search parameters on the command line
 
-Search Types <h2>
+**Search Types**
   * spotify-this-song: Uses Spotify API to search for song by song title 
   * concert-this: Uses BandinTown API to search for upcoming concerts by band name 
   * movie-this: Uses OMDB API to search for movies by title 
