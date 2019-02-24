@@ -19,8 +19,8 @@ for(let i = 3; i < queries.length; i++){
     queriesArr.push(queries[i]);
     userQuery = queriesArr.join(" ");
 };
-console.log(searchType);
-console.log(userQuery);
+// console.log(searchType);
+// console.log(userQuery || "I Want It That Way");
 
 //constructor function for dealing with band data
 const BandObject = function(venue, location, date) {
@@ -34,6 +34,14 @@ const SpotifyObject = function(artist, songName, spotifyLink, songAlbum){
     this.songName = songName;
     this.spotifyLink = spotifyLink;
     this.songAlbum = songAlbum; 
+}
+
+const writeToLog = function(responseInfo){
+    fs.appendFile("log.txt", responseInfo, (err)=>{
+        if(err){
+            console.log("ERR: ", err);
+        }
+    });
 }
 
 
@@ -57,14 +65,30 @@ spotify.search({
         // if(artists.indexOf(bandName) === -1)
         artists.push(songInfo);
     }
+    if(artists.length > 0){
+        console.log("Here's a list of artists with a song called " + songTitle);
+        artists.forEach(SpotifyObject =>{
+            let songInfo =
+`
+Arists: ${SpotifyObject.artist}
+Song Title: ${SpotifyObject.songName}
+Spotify Link: ${SpotifyObject.spotifyLink}
+Album Title: ${SpotifyObject.songAlbum}
+-----------------------------------------------
+`;
+            console.log(songInfo);
+            writeToLog(songInfo);
 
-    artists.forEach(SpotifyObject =>{
-        console.log("Artist: " + SpotifyObject.artist);
-        console.log("Song Title: " + SpotifyObject.songName);
-        console.log("Spotify Link: " + SpotifyObject.spotifyLink);
-        console.log("Album Title: " + SpotifyObject.songAlbum);
-        console.log("-----------------------------");
-    });
+            // console.log("Artist: " + SpotifyObject.artist);
+            // console.log("Song Title: " + SpotifyObject.songName);
+            // console.log("Spotify Link: " + SpotifyObject.spotifyLink);
+            // console.log("Album Title: " + SpotifyObject.songAlbum);
+            // console.log("-----------------------------");
+        });
+    }
+    else{
+        console.log("There are no results for " + songTitle + " in the spotify database. Please try another!"); 
+    }
     // console.log(JSON.stringify(data, null, 2));
 });
 }
@@ -72,7 +96,7 @@ spotify.search({
 const bandsInTown = (bandName) => {
     axios.get("https://rest.bandsintown.com/artists/" + bandName + "/events?app_id=codingbootcamp").then( response =>{
         const concerts = [];
-        console.log(response.data[0]);
+        // console.log(response.data[0]);
         //for loop to create data objects
         for(let i = 0; i < response.data.length; i++){
             //variables to build location from data
@@ -89,31 +113,66 @@ const bandsInTown = (bandName) => {
 
                 locationInfo.push(concertCity, concertState);
                 location = locationInfo.join(", ");
-                console.log(location);
+                // console.log(location);
             //use constructor function to build Bandobject for each concert
             let concertInfo = new BandObject(response.data[i].venue.name, location, response.data[i].datetime);
             concerts.push(concertInfo);
         }
+        if(concerts.length > 0){
+        console.log("Here are the upcoming concerts for " + bandName + ":");
         concerts.forEach(BandObject =>{
-            console.log(BandObject.venue);
-            console.log(BandObject.location);
-            console.log(BandObject.date);
-            console.log ("-------------");
-        });
+            let bandInfo = 
+`
+venue: ${BandObject.venue}
+location: ${BandObject.location}
+date: ${BandObject.date}
+--------------------------------
+`
+            // console.log(BandObject.venue);
+            // console.log(BandObject.location);
+            // console.log(BandObject.date);
+            // console.log ("-------------");
+            console.log(bandInfo);
+            writeToLog(bandInfo);
+        
+            });
+        }
+        else{
+            console.log("There are no upcoming shows for " + bandName + ". Try another band/performer!");
+        }
     });
 }
 
 const omdbSearch = (movieTitle) => {
     axios.get("http://www.omdbapi.com/?apikey=trilogy&t=" +movieTitle).then(response => {
-        console.log("* Title: " +response.data.Title);
-        console.log("* Year of Release: " +response.data.Year);
-        console.log("* IMDB Rating: " +response.data.imdbRating);
-        console.log("* Rotten Tomatoes Rating: " +response.data.Ratings[1].Value);
-        console.log("* Country: " +response.data.Country);
-        console.log("* Language: " +response.data.Language);
-        console.log("* Plot: " +response.data.Plot);
-        console.log("* Actors: " +response.data.Actors);
-    
+        if(response.data){
+        let movieInfo = 
+`
+* Title: ${response.data.Title}
+* Year of Release: ${response.data.Year}
+* IMDB Rating: ${response.data.imdbRating}
+* Rotten Tomatoes Rating: ${response.data.Ratings[1].Value}
+* Country: ${response.data.Country}
+* Language: ${response.data.Language}
+* Plot: ${response.data.Plot}
+* Actors: ${response.data.Actors}
+------------------------------------------------------------
+`;
+        console.log(movieInfo);
+        writeToLog(movieInfo);
+
+        // console.log("* Title: " +response.data.Title);
+        // console.log("* Year of Release: " +response.data.Year);
+        // console.log("* IMDB Rating: " +response.data.imdbRating);
+        // console.log("* Rotten Tomatoes Rating: " +response.data.Ratings[1].Value);
+        // console.log("* Country: " +response.data.Country);
+        // console.log("* Language: " +response.data.Language);
+        // console.log("* Plot: " +response.data.Plot);
+        // console.log("* Actors: " +response.data.Actors);
+        }
+        else{
+            console.log("There are no reslts for " + movieTitle + ". Try another search!");
+        }
     });
 }
 
@@ -147,7 +206,7 @@ else if(searchType === "do-what-it-says"){
         }
         
         data = data.split(",");
-        console.log(data);
+        // console.log(data);
         spotifySearch(data[1]);
     });
 }
